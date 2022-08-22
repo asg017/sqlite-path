@@ -91,8 +91,8 @@ select path_join('a', 'b', 'c'); -- 'a/b/c'
 Create a normalized version of the given path (resolving back segments), or null if it cannot be computed. path_relative(path) Returns 1 if the given path is relative, 0 if not, or null if path is null.
 
 ```sql
-select path_normalize();
--- ""
+select path_normalize('a/x/../b/c');
+-- "a/b/c"
 ```
 
 <h3 name=path_root> <code>path_root(path)</code></h3>
@@ -100,8 +100,7 @@ select path_normalize();
 Returns the root portion of the given path, or null if it cannot be computed.
 
 ```sql
-select path_root();
--- ""
+select path_root('/usr/bin'); -- '/'
 ```
 
 <h3 name=path_segment_at> <code>path_segment_at(path, at)</code></h3>
@@ -110,8 +109,17 @@ Returns the path segment in the given path at the specified index.
 If 'at' is positive, then '0' is the first segment and counts to the end. If 'at' is negative, then '-1' is the last segment and continue to the beginning. If 'at' "overflows" in either direction, then returns NULL.
 
 ```sql
-select path_segment_at();
--- ""
+select path_segment_at('oppenheimer/projects/manhattan/README', 0); -- 'oppenheimer'
+select path_segment_at('oppenheimer/projects/manhattan/README', 1); -- 'projects'
+select path_segment_at('oppenheimer/projects/manhattan/README', 2); -- 'manhattan'
+select path_segment_at('oppenheimer/projects/manhattan/README', 3); -- 'README'
+select path_segment_at('oppenheimer/projects/manhattan/README', 4); -- NULL
+
+select path_segment_at('oppenheimer/projects/manhattan/README', -1); -- 'README'
+select path_segment_at('oppenheimer/projects/manhattan/README', -2); -- 'manhattan'
+select path_segment_at('oppenheimer/projects/manhattan/README', -5); -- NULL
+
+
 ```
 
 <h3 name=path_segments> <code>select * from path_segments(path)</code></h3>
@@ -121,8 +129,27 @@ Return a table with the following schema:
 
 ```sql
 create table path_segments(
- type text,        --
- segment text,     --x
+ type text,        -- 'normal', 'current', or 'back'
+ segment text,     -- contents of the current path segment
  path text hidden  -- input path
 )
+```
+
+`rowid` can also track the index of the current path.
+
+```sql
+select rowid, *
+from path_segments('oppenheimer/projects/manhattan/./README/..');
+/*
+┌─────────┬─────────────┐
+│  type   │   segment   │
+├─────────┼─────────────┤
+│ normal  │ oppenheimer │
+│ normal  │ projects    │
+│ normal  │ manhattan   │
+│ current │ .           │
+│ normal  │ README      │
+│ back    │ ..          │
+└─────────┴─────────────┘
+*/
 ```

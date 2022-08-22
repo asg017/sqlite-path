@@ -565,6 +565,9 @@ __declspec(dllexport)
   int rc = SQLITE_OK;
   SQLITE_EXTENSION_INIT2(pApi);
 
+  // Just unix for now - maybe should be configurable?
+  cwk_path_set_style(CWK_STYLE_UNIX);
+
   (void)pzErrMsg; /* Unused parameter */
   if (rc == SQLITE_OK)
     rc = sqlite3_create_function(db, "path_version", 0,
