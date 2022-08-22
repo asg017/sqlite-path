@@ -453,26 +453,6 @@ static int pathSegmentsRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid) {
 ** a query plan for each invocation and compute an estimated cost for that
 ** plan.
 */
-/*
-  Every query plan for pathSegments() or pathSegments_read() will use idxNum and
-  idxStr.
-
-  idxNum options:
-    LINES_IDXNUM_FULL: "do a full scan", ie read all pathSegments from
-  file/document LINES_IDXNUM_ROWID_EQ: Only read a single line, defined by a
-  "rowid = :x" constraint
-
-  idxStr is a 3-character string that denotes which argv option cooresponds
-  to which column constraint. The i-th character in the string cooresponds
-  to the i-th argv option in the xFilter functions.
-
-  idxStr character options:
-    LINES_IDXSTR_PATH: argv[i] is text to the path of the file or the document
-  itself LINES_IDXSTR_DELIMITER: argv[i] will be text of delimiter to use
-    LINES_IDXSTR_ROWID: argv[i] is integer of rowid to filter to, with
-  LINES_IDXNUM_ROWID_EQ
-
-*/
 
 static int pathSegmentsBestIndex(sqlite3_vtab *pVTab,
                                  sqlite3_index_info *pIdxInfo) {
