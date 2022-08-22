@@ -4,6 +4,7 @@
   a build. This is used for the demo CLI and WASM implementations.
 */
 #include "sqlite-path.h"
+
 int core_init(const char *dummy) {
   return sqlite3_auto_extension((void *)sqlite3_path_init);
 }

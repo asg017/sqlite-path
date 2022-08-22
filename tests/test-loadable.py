@@ -80,6 +80,10 @@ class TestPath(unittest.TestCase):
     self.assertEqual(path_absolute("/a"), 1)
     self.assertEqual(path_absolute("~/a"), 0)
     self.assertEqual(path_absolute("./a"), 0)
+    self.assertEqual(path_absolute("."), 0)
+    self.assertEqual(path_absolute("/"), 1)
+    self.assertEqual(path_absolute(""), 0)
+    self.assertEqual(path_absolute(None), 0)
   
   def test_path_basename(self):
     path_basename = lambda arg: db.execute("select path_basename(?)", [arg]).fetchone()[0]
@@ -88,6 +92,7 @@ class TestPath(unittest.TestCase):
     self.assertEqual(path_basename("c.txt"), "c.txt")
     self.assertEqual(path_basename("c"), "c")
     self.assertEqual(path_basename(""), None)
+    self.assertEqual(path_basename(None), None)
   
   def test_path_dirname(self):
     path_dirname = lambda arg: db.execute("select path_dirname(?)", [arg]).fetchone()[0]
@@ -95,27 +100,51 @@ class TestPath(unittest.TestCase):
     self.assertEqual(path_dirname("a/"), None)
     self.assertEqual(path_dirname("a"), None)
     self.assertEqual(path_dirname(""), None)
+    self.assertEqual(path_dirname(None), None)
   
   def test_path_extension(self):
     path_extension = lambda arg: db.execute("select path_extension(?)", [arg]).fetchone()[0]
     self.assertEqual(path_extension("b.txt"), ".txt")
     self.assertEqual(path_extension("b.tar.gz"), ".gz")
     self.assertEqual(path_extension("abc"), None)
+    self.assertEqual(path_extension(""), None)
+    self.assertEqual(path_extension(None), None)
   
   def test_path_intersection(self):
     path_intersection = lambda a, b: db.execute("select path_intersection(?, ?)", [a, b]).fetchone()[0]
     self.assertEqual(path_intersection('/this/is/a/test', '/this/is/a/ayoo/what'), "/this/is/a")
+    self.assertEqual(path_intersection('/a/b/c', '/a/b/c'), '/a/b/c')
+    self.assertEqual(path_intersection('/a/b/', '/a/b/c'), '/a/b')
+    self.assertEqual(path_intersection('/a', '/a'), '/a')
+    self.assertEqual(path_intersection('/a', '/b'), '/')
+    self.assertEqual(path_intersection('/', '/'), '/')
+    self.assertEqual(path_intersection('/', ''), None)
+    self.assertEqual(path_intersection('', ''), None)
+    self.assertEqual(path_intersection('', None), None)
+    self.assertEqual(path_intersection(None, ''), None)
   
   def test_path_join(self):
     path_join = lambda *a: db.execute("select path_join({args})".format(args=spread_args(a)), a).fetchone()[0]
     self.assertEqual(path_join("a", "b"), "a/b")
     self.assertEqual(path_join("abc", "xyz"), "abc/xyz")
     # TODO joining is hard :(
-    #self.assertEqual(path_join("aa", "bbb", "cccc"), "aa/bbb/cccc")
+    self.assertEqual(path_join("aa", "bbb", "cccc"), "aa/bbb/cccc")
+    self.assertEqual(path_join("aa", "bbb", "cccc", "ddddd"), "aa/bbb/cccc/ddddd")
+    self.assertEqual(path_join("/", "..", "a"), "/a")
+    self.assertEqual(path_join("/a", "..", "..", "b"), "/b")
+    self.assertEqual(path_join("a", None), 'a')
+    self.assertEqual(path_join(None, 'a'), None)
+
+    with self.assertRaisesRegex(sqlite3.OperationalError, 'at least 2 paths are required for path_join'):
+      path_join()
+    with self.assertRaisesRegex(sqlite3.OperationalError, 'at least 2 paths are required for path_join'):
+      path_join("a")
   
   def test_path_normalize(self):
     path_normalize = lambda arg: db.execute("select path_normalize(?)", [arg]).fetchone()[0]
     self.assertEqual(path_normalize("~/../a/b/./c/../ayoo"), "a/b/ayoo")
+    self.assertEqual(path_normalize("/a/b/c/../../x"), "/a/x")
+    self.assertEqual(path_normalize(None), None)
   
   def test_path_relative(self):
     path_relative = lambda arg: db.execute("select path_relative(?)", [arg]).fetchone()[0]
@@ -124,11 +153,13 @@ class TestPath(unittest.TestCase):
 
     # TODO wtf
     self.assertEqual(path_relative(""), 1)
+    self.assertEqual(path_relative(None), None)
   
   def test_path_root(self):
     path_root = lambda arg: db.execute("select path_root(?)", [arg]).fetchone()[0]
     self.assertEqual(path_root("a/b.txt"), "")
     self.assertEqual(path_root("/a/b.txt"), "/")
+    self.assertEqual(path_root(None), None)
     # TODO what does windows do
     self.assertEqual(path_root("C:/a/b.txt"), "")
   
@@ -159,6 +190,10 @@ class TestPath(unittest.TestCase):
     self.assertEqual(path_segment_at(PATH, 5), None)
     self.assertEqual(path_segment_at(PATH, 6), None)
     self.assertEqual(path_segment_at(PATH, 7), None)
+
+    # null tests
+    self.assertEqual(path_segment_at(None, 1), None)
+    self.assertEqual(path_segment_at(PATH, None), "home")
   
   def test_path_segments(self):
     self.assertEqual(execute_all("select rowid, * from path_segments('/home/root/.././.ssh/keys')"), [
