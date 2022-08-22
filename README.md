@@ -146,21 +146,8 @@ datasette data.db --load-extension ./path0
 
 ## See also
 
+- [sqlite-url](https://github.com/asg017/sqlite-url), for parsing and generating URLs (pairs well with this library)
 - [sqlite-http](https://github.com/asg017/sqlite-http), for making HTTP requests in SQLite
 - [sqlite-html](https://github.com/asg017/sqlite-html), for parsing HTML documents
 - [sqlite-lines](https://github.com/asg017/sqlite-lines), for reading large files line-by-line
 - [nalgeon/sqlean](https://github.com/nalgeon/sqlean), several pre-compiled handy SQLite functions, in C
-
-## TODO
-
-- [ ] lib
-  - [ ] `path_join(...args)`
-  - [ ] `path_join(segment)` aggregate function
-  - [ ] windows/unix?
-- [x] test loadable
-- [x] sqlite3 build
-- [ ] wasm build
-- [ ] usecases
-  - [ ] local fs, pair with `fsdir`
-  - [ ] zipfile names
-  - [ ] URLs
