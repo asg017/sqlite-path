@@ -141,15 +141,15 @@ create table path_segments(
 select rowid, *
 from path_segments('oppenheimer/projects/manhattan/./README/..');
 /*
-┌─────────┬─────────────┐
-│  type   │   segment   │
-├─────────┼─────────────┤
-│ normal  │ oppenheimer │
-│ normal  │ projects    │
-│ normal  │ manhattan   │
-│ current │ .           │
-│ normal  │ README      │
-│ back    │ ..          │
-└─────────┴─────────────┘
+┌───────┬─────────┬─────────────┐
+│ rowid │  type   │   segment   │
+├───────┼─────────┼─────────────┤
+│ 0     │ normal  │ oppenheimer │
+│ 1     │ normal  │ projects    │
+│ 2     │ normal  │ manhattan   │
+│ 3     │ current │ .           │
+│ 4     │ normal  │ README      │
+│ 5     │ back    │ ..          │
+└───────┴─────────┴─────────────┘
 */
 ```
