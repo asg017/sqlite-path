@@ -232,15 +232,16 @@ static void pathRootFunc(sqlite3_context *context, int argc,
   sqlite3_result_text(context, path, length, SQLITE_TRANSIENT);
 }
 
-/** path_segment_at(path, at)
+/** path_part_at(path, at)
+ ** path_at(path, at)
  * Returns the path segment in the given path at the specified index.
  * If 'at' is positive, then '0' is the first segment and counts to the end.
  * If 'at' is negative, then '-1' is the last segment and continue to the
  * beginning. If 'at' "overflows" in either direction, then returns NULL.
  *
  */
-static void pathSegmentAtFunc(sqlite3_context *context, int argc,
-                              sqlite3_value **argv) {
+static void pathPartAtFunc(sqlite3_context *context, int argc,
+                           sqlite3_value **argv) {
   const char *path = (const char *)sqlite3_value_text(argv[0]);
   int at = sqlite3_value_int(argv[1]);
   struct cwk_segment segment;
@@ -285,26 +286,26 @@ static void pathSegmentAtFunc(sqlite3_context *context, int argc,
 #pragma endregion
 
 #pragma region sqlite - path table functions
-/** select * from path_segments(path)
+/** select * from path_parts(path)
  * Table function that returns each segment for the given path.
  * Return a table with the following schema:
  * ```sql
- * create table path_segments(
+ * create table path_parts(
  *  type text,        --
- *  segment text,     --x
+ *  part text,       --x
  *  path text hidden  -- input path
  * )
  * ```
  *
  */
 
-#define PATH_SEGMENTS_COLUMN_ROWID -1
-#define PATH_SEGMENTS_COLUMN_PATH 0
-#define PATH_SEGMENTS_COLUMN_TYPE 1
-#define PATH_SEGMENTS_COLUMN_SEGMENT 2
+#define PATH_PARTS_COLUMN_ROWID -1
+#define PATH_PARTS_COLUMN_PATH 0
+#define PATH_PARTS_COLUMN_TYPE 1
+#define PATH_PARTS_COLUMN_SEGMENT 2
 
-typedef struct path_segments_cursor path_segments_cursor;
-struct path_segments_cursor {
+typedef struct path_parts_cursor path_parts_cursor;
+struct path_parts_cursor {
   // Base class - must be first
   sqlite3_vtab_cursor base;
   sqlite3_int64 iRowid;
@@ -315,28 +316,29 @@ struct path_segments_cursor {
 };
 
 /*
-** The pathSegmentsReadConnect() method is invoked to create a new
-** pathSegments_vtab that describes the pathSegments_read virtual table.
+** The pathPartsReadConnect() method is invoked to create a new
+** pathParts_vtab that describes the pathParts_read virtual table.
 **
-** Think of this routine as the constructor for pathSegments_vtab objects.
+** Think of this routine as the constructor for pathParts_vtab objects.
 **
 ** All this routine needs to do is:
 **
-**    (1) Allocate the pathSegments_vtab object and initialize all fields.
+**    (1) Allocate the pathParts_vtab object and initialize all fields.
 **
 **    (2) Tell SQLite (via the sqlite3_declare_vtab() interface) what the
-**        result set of queries against pathSegments_read will look like.
+**        result set of queries against pathParts_read will look like.
 */
-static int pathSegmentsConnect(sqlite3 *db, void *pUnused, int argcUnused,
-                               const char *const *argvUnused,
-                               sqlite3_vtab **ppVtab, char **pzErrUnused) {
+static int pathPartsConnect(sqlite3 *db, void *pUnused, int argcUnused,
+                            const char *const *argvUnused,
+                            sqlite3_vtab **ppVtab, char **pzErrUnused) {
   sqlite3_vtab *pNew;
   int rc;
   (void)pUnused;
   (void)argcUnused;
   (void)argvUnused;
   (void)pzErrUnused;
-  rc = sqlite3_declare_vtab(db, "CREATE TABLE x(path hidden, type, segment)");
+  rc = sqlite3_declare_vtab(
+      db, "CREATE TABLE x(path hidden, type text, part text)");
   if (rc == SQLITE_OK) {
     pNew = *ppVtab = sqlite3_malloc(sizeof(*pNew));
     if (pNew == 0)
@@ -348,19 +350,19 @@ static int pathSegmentsConnect(sqlite3 *db, void *pUnused, int argcUnused,
 }
 
 /*
-** This method is the destructor for path_segments_cursor objects.
+** This method is the destructor for path_parts_cursor objects.
 */
-static int pathSegmentsDisconnect(sqlite3_vtab *pVtab) {
+static int pathPartsDisconnect(sqlite3_vtab *pVtab) {
   sqlite3_free(pVtab);
   return SQLITE_OK;
 }
 
 /*
-** Constructor for a new path_segments_cursor object.
+** Constructor for a new path_parts_cursor object.
 */
-static int pathSegmentsOpen(sqlite3_vtab *pUnused,
-                            sqlite3_vtab_cursor **ppCursor) {
-  path_segments_cursor *pCur;
+static int pathPartsOpen(sqlite3_vtab *pUnused,
+                         sqlite3_vtab_cursor **ppCursor) {
+  path_parts_cursor *pCur;
   (void)pUnused;
   pCur = sqlite3_malloc(sizeof(*pCur));
   if (pCur == 0)
@@ -371,18 +373,18 @@ static int pathSegmentsOpen(sqlite3_vtab *pUnused,
 }
 
 /*
-** Destructor for a path_segments_cursor.
+** Destructor for a path_parts_cursor.
 */
-static int pathSegmentsClose(sqlite3_vtab_cursor *cur) {
+static int pathPartsClose(sqlite3_vtab_cursor *cur) {
   sqlite3_free(cur);
   return SQLITE_OK;
 }
 
 /*
-** Advance a path_segments_cursor to its next row of output.
+** Advance a path_parts_cursor to its next row of output.
 */
-static int pathSegmentsNext(sqlite3_vtab_cursor *cur) {
-  path_segments_cursor *pCur = (path_segments_cursor *)cur;
+static int pathPartsNext(sqlite3_vtab_cursor *cur) {
+  path_parts_cursor *pCur = (path_parts_cursor *)cur;
   pCur->next = cwk_path_get_next_segment(pCur->segment);
   pCur->iRowid++;
   return SQLITE_OK;
@@ -392,28 +394,28 @@ static int pathSegmentsNext(sqlite3_vtab_cursor *cur) {
 ** Return TRUE if the cursor has been moved off of the last
 ** row of output.
 */
-static int pathSegmentsEof(sqlite3_vtab_cursor *cur) {
-  path_segments_cursor *pCur = (path_segments_cursor *)cur;
+static int pathPartsEof(sqlite3_vtab_cursor *cur) {
+  path_parts_cursor *pCur = (path_parts_cursor *)cur;
   return !pCur->next;
 }
 
 /*
-** Return values of columns for the row at which the path_segments_cursor
+** Return values of columns for the row at which the path_parts_cursor
 ** is currently pointing.
 */
-static int pathSegmentsColumn(
+static int pathPartsColumn(
     sqlite3_vtab_cursor *cur, /* The cursor */
     sqlite3_context *ctx,     /* First argument to sqlite3_result_...() */
     int i                     /* Which column to return */
 ) {
-  path_segments_cursor *pCur = (path_segments_cursor *)cur;
+  path_parts_cursor *pCur = (path_parts_cursor *)cur;
   sqlite3_int64 x = 0;
   switch (i) {
-  case PATH_SEGMENTS_COLUMN_PATH: {
+  case PATH_PARTS_COLUMN_PATH: {
     sqlite3_result_null(ctx);
     break;
   }
-  case PATH_SEGMENTS_COLUMN_TYPE: {
+  case PATH_PARTS_COLUMN_TYPE: {
     switch (cwk_path_get_segment_type(pCur->segment)) {
     case CWK_NORMAL:
       sqlite3_result_text(ctx, "normal", -1, SQLITE_STATIC);
@@ -427,7 +429,7 @@ static int pathSegmentsColumn(
     }
     break;
   }
-  case PATH_SEGMENTS_COLUMN_SEGMENT: {
+  case PATH_PARTS_COLUMN_SEGMENT: {
     sqlite3_result_text(ctx, pCur->segment->begin, pCur->segment->size,
                         SQLITE_TRANSIENT);
     break;
@@ -441,27 +443,27 @@ static int pathSegmentsColumn(
 ** first row returned is assigned rowid value 1, and each subsequent
 ** row a value 1 more than that of the previous.
 */
-static int pathSegmentsRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid) {
-  path_segments_cursor *pCur = (path_segments_cursor *)cur;
+static int pathPartsRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid) {
+  path_parts_cursor *pCur = (path_parts_cursor *)cur;
   *pRowid = pCur->iRowid;
   return SQLITE_OK;
 }
 
 /*
 ** SQLite will invoke this method one or more times while planning a query
-** that uses the pathSegments_read virtual table.  This routine needs to create
+** that uses the pathParts_read virtual table.  This routine needs to create
 ** a query plan for each invocation and compute an estimated cost for that
 ** plan.
 */
 
-static int pathSegmentsBestIndex(sqlite3_vtab *pVTab,
-                                 sqlite3_index_info *pIdxInfo) {
+static int pathPartsBestIndex(sqlite3_vtab *pVTab,
+                              sqlite3_index_info *pIdxInfo) {
   int hasPath = 0;
 
   for (int i = 0; i < pIdxInfo->nConstraint; i++) {
     const struct sqlite3_index_constraint *pCons = &pIdxInfo->aConstraint[i];
     switch (pCons->iColumn) {
-    case PATH_SEGMENTS_COLUMN_PATH: {
+    case PATH_PARTS_COLUMN_PATH: {
       if (!hasPath && !pCons->usable || pCons->op != SQLITE_INDEX_CONSTRAINT_EQ)
         return SQLITE_CONSTRAINT;
       hasPath = 1;
@@ -483,7 +485,7 @@ static int pathSegmentsBestIndex(sqlite3_vtab *pVTab,
 }
 
 /*
-** This method is called to "rewind" the path_segments_cursor object back
+** This method is called to "rewind" the path_parts_cursor object back
 ** to the first row of output.  This method is always called at least
 ** once prior to any call to xColumn() or xRowid() or xEof().
 **
@@ -491,10 +493,9 @@ static int pathSegmentsBestIndex(sqlite3_vtab *pVTab,
 ** is pointing at the first row, or pointing off the end of the table
 ** (so that xEof() will return true) if the table is empty.
 */
-static int pathSegmentsFilter(sqlite3_vtab_cursor *pVtabCursor, int idxNum,
-                              const char *idxStr, int argc,
-                              sqlite3_value **argv) {
-  path_segments_cursor *pCur = (path_segments_cursor *)pVtabCursor;
+static int pathPartsFilter(sqlite3_vtab_cursor *pVtabCursor, int idxNum,
+                           const char *idxStr, int argc, sqlite3_value **argv) {
+  path_parts_cursor *pCur = (path_parts_cursor *)pVtabCursor;
   struct cwk_segment *segment;
   pCur->segment = sqlite3_malloc(sizeof(*segment));
   if (pCur->segment == NULL)
@@ -506,31 +507,31 @@ static int pathSegmentsFilter(sqlite3_vtab_cursor *pVtabCursor, int idxNum,
   return SQLITE_OK;
 }
 
-static sqlite3_module pathSegmentsModule = {
-    0,                      /* iVersion */
-    0,                      /* xCreate */
-    pathSegmentsConnect,    /* xConnect */
-    pathSegmentsBestIndex,  /* xBestIndex */
-    pathSegmentsDisconnect, /* xDisconnect */
-    0,                      /* xDestroy */
-    pathSegmentsOpen,       /* xOpen - open a cursor */
-    pathSegmentsClose,      /* xClose - close a cursor */
-    pathSegmentsFilter,     /* xFilter - configure scan constraints */
-    pathSegmentsNext,       /* xNext - advance a cursor */
-    pathSegmentsEof,        /* xEof - check for end of scan */
-    pathSegmentsColumn,     /* xColumn - read data */
-    pathSegmentsRowid,      /* xRowid - read data */
-    0,                      /* xUpdate */
-    0,                      /* xBegin */
-    0,                      /* xSync */
-    0,                      /* xCommit */
-    0,                      /* xRollback */
-    0,                      /* xFindMethod */
-    0,                      /* xRename */
-    0,                      /* xSavepoint */
-    0,                      /* xRelease */
-    0,                      /* xRollbackTo */
-    0                       /* xShadowName */
+static sqlite3_module pathPartsModule = {
+    0,                   /* iVersion */
+    0,                   /* xCreate */
+    pathPartsConnect,    /* xConnect */
+    pathPartsBestIndex,  /* xBestIndex */
+    pathPartsDisconnect, /* xDisconnect */
+    0,                   /* xDestroy */
+    pathPartsOpen,       /* xOpen - open a cursor */
+    pathPartsClose,      /* xClose - close a cursor */
+    pathPartsFilter,     /* xFilter - configure scan constraints */
+    pathPartsNext,       /* xNext - advance a cursor */
+    pathPartsEof,        /* xEof - check for end of scan */
+    pathPartsColumn,     /* xColumn - read data */
+    pathPartsRowid,      /* xRowid - read data */
+    0,                   /* xUpdate */
+    0,                   /* xBegin */
+    0,                   /* xSync */
+    0,                   /* xCommit */
+    0,                   /* xRollback */
+    0,                   /* xFindMethod */
+    0,                   /* xRename */
+    0,                   /* xSavepoint */
+    0,                   /* xRelease */
+    0,                   /* xRollbackTo */
+    0                    /* xShadowName */
 };
 
 #pragma endregion
@@ -576,10 +577,13 @@ __declspec(dllexport)
                                SQLITE_UTF8 | SQLITE_INNOCUOUS |
                                    SQLITE_DETERMINISTIC,
                                0, pathExtensionFunc, 0, 0);
-  rc = sqlite3_create_function(db, "path_segment_at", 2,
+  rc = sqlite3_create_function(db, "path_part_at", 2,
                                SQLITE_UTF8 | SQLITE_INNOCUOUS |
                                    SQLITE_DETERMINISTIC,
-                               0, pathSegmentAtFunc, 0, 0);
+                               0, pathPartAtFunc, 0, 0);
+  rc = sqlite3_create_function(
+      db, "path_at", 2, SQLITE_UTF8 | SQLITE_INNOCUOUS | SQLITE_DETERMINISTIC,
+      0, pathPartAtFunc, 0, 0);
   rc = sqlite3_create_function(db, "path_absolute", 1,
                                SQLITE_UTF8 | SQLITE_INNOCUOUS |
                                    SQLITE_DETERMINISTIC,
@@ -601,7 +605,7 @@ __declspec(dllexport)
                                0, pathIntersectionFunc, 0, 0);
 
   if (rc == SQLITE_OK)
-    rc = sqlite3_create_module(db, "path_segments", &pathSegmentsModule, 0);
+    rc = sqlite3_create_module(db, "path_parts", &pathPartsModule, 0);
   return rc;
 }
 

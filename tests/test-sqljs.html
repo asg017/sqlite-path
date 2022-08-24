@@ -72,8 +72,8 @@ where name like 'path%'`
           `select 
   rowid, 
   type,
-  segment
-from path_segments('/usr/lib/ayoo')`
+  part
+from path_parts('/usr/lib/ayoo')`
         );
         document.querySelector("#results").innerText = "✅ tests passed";
       } catch {

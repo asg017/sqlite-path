@@ -34,6 +34,7 @@ def spread_args(args):
 
 FUNCTIONS = [
   "path_absolute",
+  "path_at",
   "path_basename",
   "path_debug",
   "path_dirname",
@@ -41,14 +42,14 @@ FUNCTIONS = [
   "path_intersection",
   "path_join",
   "path_normalize",
+  "path_part_at",
   "path_relative",
   "path_root",
-  "path_segment_at",
   "path_version",
 ]
 
 MODULES = [
-  "path_segments",
+  "path_parts",
 ]
 class TestPath(unittest.TestCase):
   def test_funcs(self):
@@ -163,46 +164,50 @@ class TestPath(unittest.TestCase):
     # TODO what does windows do
     self.assertEqual(path_root("C:/a/b.txt"), "")
   
-  def test_path_segment_at(self):
-    path_segment_at = lambda a, b: db.execute("select path_segment_at(?, ?)", [a, b]).fetchone()[0]
+  # alias for path_part_at
+  def test_path_at(self):
+    pass
+
+  def test_path_part_at(self):
+    path_part_at = lambda a, b: db.execute("select path_part_at(?, ?)", [a, b]).fetchone()[0]
     PATH = "/home/oppenheimer/projects/manhattan/README.md"
 
     # 0 and positive indicies within bounds works
-    self.assertEqual(path_segment_at(PATH, 0), "home")
-    self.assertEqual(path_segment_at(PATH, 1), "oppenheimer")
-    self.assertEqual(path_segment_at(PATH, 2), "projects")
-    self.assertEqual(path_segment_at(PATH, 3), "manhattan")
-    self.assertEqual(path_segment_at(PATH, 4), "README.md")
+    self.assertEqual(path_part_at(PATH, 0), "home")
+    self.assertEqual(path_part_at(PATH, 1), "oppenheimer")
+    self.assertEqual(path_part_at(PATH, 2), "projects")
+    self.assertEqual(path_part_at(PATH, 3), "manhattan")
+    self.assertEqual(path_part_at(PATH, 4), "README.md")
 
     # negative indicies within bounds wrap around
-    self.assertEqual(path_segment_at(PATH, -1), "README.md")
-    self.assertEqual(path_segment_at(PATH, -2), "manhattan")
-    self.assertEqual(path_segment_at(PATH, -3), "projects")
-    self.assertEqual(path_segment_at(PATH, -4), "oppenheimer")
-    self.assertEqual(path_segment_at(PATH, -5), "home")
+    self.assertEqual(path_part_at(PATH, -1), "README.md")
+    self.assertEqual(path_part_at(PATH, -2), "manhattan")
+    self.assertEqual(path_part_at(PATH, -3), "projects")
+    self.assertEqual(path_part_at(PATH, -4), "oppenheimer")
+    self.assertEqual(path_part_at(PATH, -5), "home")
 
     # negative indicies out of bounds return null
-    self.assertEqual(path_segment_at(PATH, -6), None)
-    self.assertEqual(path_segment_at(PATH, -7), None)
-    self.assertEqual(path_segment_at(PATH, -8), None)
+    self.assertEqual(path_part_at(PATH, -6), None)
+    self.assertEqual(path_part_at(PATH, -7), None)
+    self.assertEqual(path_part_at(PATH, -8), None)
 
     # postive indicies out of bounds return null
-    self.assertEqual(path_segment_at(PATH, 5), None)
-    self.assertEqual(path_segment_at(PATH, 6), None)
-    self.assertEqual(path_segment_at(PATH, 7), None)
+    self.assertEqual(path_part_at(PATH, 5), None)
+    self.assertEqual(path_part_at(PATH, 6), None)
+    self.assertEqual(path_part_at(PATH, 7), None)
 
     # null tests
-    self.assertEqual(path_segment_at(None, 1), None)
-    self.assertEqual(path_segment_at(PATH, None), "home")
+    self.assertEqual(path_part_at(None, 1), None)
+    self.assertEqual(path_part_at(PATH, None), "home")
   
-  def test_path_segments(self):
-    self.assertEqual(execute_all("select rowid, * from path_segments('/home/root/.././.ssh/keys')"), [
-      {"rowid": 0, "segment": "home", "type": "normal"},
-      {"rowid": 1, "segment": "root", "type": "normal"},
-      {"rowid": 2, "segment": "..", "type": "back"},
-      {"rowid": 3, "segment": ".", "type": "current"},
-      {"rowid": 4, "segment": ".ssh", "type": "normal"},
-      {"rowid": 5, "segment": "keys", "type": "normal"},
+  def test_path_parts(self):
+    self.assertEqual(execute_all("select rowid, * from path_parts('/home/root/.././.ssh/keys')"), [
+      {"rowid": 0, "part": "home", "type": "normal"},
+      {"rowid": 1, "part": "root", "type": "normal"},
+      {"rowid": 2, "part": "..", "type": "back"},
+      {"rowid": 3, "part": ".", "type": "current"},
+      {"rowid": 4, "part": ".ssh", "type": "normal"},
+      {"rowid": 5, "part": "keys", "type": "normal"},
     ])
 class TestCoverage(unittest.TestCase):                                      
   def test_coverage(self):                                                      

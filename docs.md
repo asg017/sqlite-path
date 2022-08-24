@@ -103,34 +103,34 @@ Returns the root portion of the given path, or null if it cannot be computed.
 select path_root('/usr/bin'); -- '/'
 ```
 
-<h3 name=path_segment_at> <code>path_segment_at(path, at)</code></h3>
+<h3 name=path_part_at> <code>path_part_at(path, at)</code>, <code>path_at(path, at)</code></h3>
 
 Returns the path segment in the given path at the specified index.
 If 'at' is positive, then '0' is the first segment and counts to the end. If 'at' is negative, then '-1' is the last segment and continue to the beginning. If 'at' "overflows" in either direction, then returns NULL.
 
 ```sql
-select path_segment_at('oppenheimer/projects/manhattan/README', 0); -- 'oppenheimer'
-select path_segment_at('oppenheimer/projects/manhattan/README', 1); -- 'projects'
-select path_segment_at('oppenheimer/projects/manhattan/README', 2); -- 'manhattan'
-select path_segment_at('oppenheimer/projects/manhattan/README', 3); -- 'README'
-select path_segment_at('oppenheimer/projects/manhattan/README', 4); -- NULL
+select path_at('oppenheimer/projects/manhattan/README', 0); -- 'oppenheimer'
+select path_at('oppenheimer/projects/manhattan/README', 1); -- 'projects'
+select path_at('oppenheimer/projects/manhattan/README', 2); -- 'manhattan'
+select path_at('oppenheimer/projects/manhattan/README', 3); -- 'README'
+select path_at('oppenheimer/projects/manhattan/README', 4); -- NULL
 
-select path_segment_at('oppenheimer/projects/manhattan/README', -1); -- 'README'
-select path_segment_at('oppenheimer/projects/manhattan/README', -2); -- 'manhattan'
-select path_segment_at('oppenheimer/projects/manhattan/README', -5); -- NULL
+select path_at('oppenheimer/projects/manhattan/README', -1); -- 'README'
+select path_at('oppenheimer/projects/manhattan/README', -2); -- 'manhattan'
+select path_at('oppenheimer/projects/manhattan/README', -5); -- NULL
 
 
 ```
 
-<h3 name=path_segments> <code>select * from path_segments(path)</code></h3>
+<h3 name=path_parts> <code>select * from path_parts(path)</code></h3>
 
-Table function that returns each segment for the given path.
+Table function that returns each part of the given path.
 Return a table with the following schema:
 
 ```sql
-create table path_segments(
+create table path_parts(
  type text,        -- 'normal', 'current', or 'back'
- segment text,     -- contents of the current path segment
+ part text,       -- contents of the current path part
  path text hidden  -- input path
 )
 ```
@@ -139,10 +139,10 @@ create table path_segments(
 
 ```sql
 select rowid, *
-from path_segments('oppenheimer/projects/manhattan/./README/..');
+from path_parts('oppenheimer/projects/manhattan/./README/..');
 /*
 ┌───────┬─────────┬─────────────┐
-│ rowid │  type   │   segment   │
+│ rowid │  type   │    part     │
 ├───────┼─────────┼─────────────┤
 │ 0     │ normal  │ oppenheimer │
 │ 1     │ normal  │ projects    │
