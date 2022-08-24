@@ -67,6 +67,16 @@ select path_extension('spiderman.mp4'); -- ".mp4"
 select path_extension('CHANGELOG'); -- NULL
 ```
 
+<h3 name=path_name> <code>path_name(path)</code></h3>
+
+Returns the name of the given path as text, or NULL if it cannot be calculated.
+
+```sql
+select path_name('spiderman.mp4'); -- "spiderman"
+select path_name('archive.tar.gz'); -- "archive"
+select path_name('CHANGELOG'); -- "CHANGELOG"
+```
+
 <h3 name=path_intersection> <code>path_intersection(path)</code></h3>
 
 Returns the common portions between two paths, or null if it cannot be computed.

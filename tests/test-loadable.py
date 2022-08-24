@@ -41,6 +41,7 @@ FUNCTIONS = [
   "path_extension",
   "path_intersection",
   "path_join",
+  "path_name",
   "path_normalize",
   "path_part_at",
   "path_relative",
@@ -111,6 +112,15 @@ class TestPath(unittest.TestCase):
     self.assertEqual(path_extension(""), None)
     self.assertEqual(path_extension(None), None)
   
+  def test_path_name(self):
+    path_name = lambda arg: db.execute("select path_name(?)", [arg]).fetchone()[0]
+    self.assertEqual(path_name("b.txt"), "b")
+    self.assertEqual(path_name("b.tar.gz"), "b")
+    self.assertEqual(path_name("abc"), "abc")
+    self.assertEqual(path_name("abc"), "abc")
+    self.assertEqual(path_name(".vimrc"), ".vimrc")
+    self.assertEqual(path_name(".vimrc.lol"), ".vimrc")
+    
   def test_path_intersection(self):
     path_intersection = lambda a, b: db.execute("select path_intersection(?, ?)", [a, b]).fetchone()[0]
     self.assertEqual(path_intersection('/this/is/a/test', '/this/is/a/ayoo/what'), "/this/is/a")

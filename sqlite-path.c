@@ -116,6 +116,47 @@ static void pathExtensionFunc(sqlite3_context *context, int argc,
   sqlite3_result_text(context, extension, length, SQLITE_TRANSIENT);
 }
 
+/** path_name(path)
+ * Returns the name of the given path as text,
+ * or NULL if it cannot be calculated.
+ */
+static void pathNameFunc(sqlite3_context *context, int argc,
+                         sqlite3_value **argv) {
+  const char *path;
+  struct cwk_segment segment;
+  const char *c;
+  if (sqlite3_value_type(argv[0]) == SQLITE_NULL) {
+    sqlite3_result_null(context);
+    return;
+  }
+
+  path = (const char *)sqlite3_value_text(argv[0]);
+
+  if (!cwk_path_get_last_segment(path, &segment)) {
+    sqlite3_result_null(context);
+    return;
+  }
+
+  for (c = segment.begin; c <= segment.end; ++c) {
+
+    if (*c == '.') {
+      // hidden files!
+      if (c == segment.begin) {
+        continue;
+      }
+      sqlite3_result_text(context, segment.begin, c - segment.begin,
+                          SQLITE_TRANSIENT);
+      return;
+    }
+  }
+
+  // at this point, the last segment doesn't have an extension, so the
+  // name is just the entire segment
+  sqlite3_result_text(context, segment.begin, segment.end - segment.begin,
+                      SQLITE_TRANSIENT);
+  return;
+}
+
 /** path_intersection(path)
  * Returns the common portions between two paths, or null if it cannot be
  * computed.
@@ -577,6 +618,9 @@ __declspec(dllexport)
                                SQLITE_UTF8 | SQLITE_INNOCUOUS |
                                    SQLITE_DETERMINISTIC,
                                0, pathExtensionFunc, 0, 0);
+  rc = sqlite3_create_function(
+      db, "path_name", 1, SQLITE_UTF8 | SQLITE_INNOCUOUS | SQLITE_DETERMINISTIC,
+      0, pathNameFunc, 0, 0);
   rc = sqlite3_create_function(db, "path_part_at", 2,
                                SQLITE_UTF8 | SQLITE_INNOCUOUS |
                                    SQLITE_DETERMINISTIC,

@@ -22,7 +22,7 @@ class TestSqliteLinesCli(unittest.TestCase):
     self.assertEqual(run_sqlite3('select 1').stdout,  '1\n')
     self.assertEqual(
       run_sqlite3(['select name from pragma_function_list where name like "path_%" order by 1']).stdout,  
-      "path_absolute\npath_at\npath_basename\npath_debug\npath_dirname\npath_extension\npath_intersection\npath_join\npath_normalize\npath_part_at\npath_relative\npath_root\npath_version\n"
+      "path_absolute\npath_at\npath_basename\npath_debug\npath_dirname\npath_extension\npath_intersection\npath_join\npath_name\npath_normalize\npath_part_at\npath_relative\npath_root\npath_version\n"
     )
     self.assertEqual(
       run_sqlite3(['select name from pragma_module_list where name like "path_%" order by 1']).stdout,  
