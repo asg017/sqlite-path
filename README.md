@@ -1,6 +1,8 @@
 # sqlite-path
 
-A SQLite extension for parsing, generating, and querying paths. Based on [cwalk](https://github.com/likle/cwalk)
+A loadable SQLite extension for parsing, generating, and querying paths. Based on [cwalk](https://github.com/likle/cwalk)
+
+Try it out in your browser and learn more in [_Introducing sqlite-path: A SQLite extension for parsing and generating file paths_](https://observablehq.com/@asg017/introducing-sqlite-path) (August 2022)
 
 ## Usage
 
@@ -10,21 +12,21 @@ select path_dirname('foo/bar.txt'); -- 'foo/'
 select path_basename('foo/bar.txt'); -- 'bar.txt'
 select path_extension('foo/bar.txt'); -- '.txt'
 
-select path_segment_at('foo/bar/baz.txt', 0); -- 'foo'
-select path_segment_at('foo/bar/baz.txt', 1); -- 'bar'
-select path_segment_at('foo/bar/baz.txt', -1); -- 'baz.txt'
+select path_part_at('foo/bar/baz.txt', 0); -- 'foo'
+select path_part_at('foo/bar/baz.txt', 1); -- 'bar'
+select path_part_at('foo/bar/baz.txt', -1); -- 'baz.txt'
 ```
 
-Iterate through all segments in a path.
+Iterate through all parts in a path.
 
 ```sql
 
 select *
-from path_segments('/usr/bin/sqlite3');
+from path_parts('/usr/bin/sqlite3');
 
 /*
 ┌────────┬─────────┐
-│  type  │ segment │
+│  type  │  part   │
 ├────────┼─────────┤
 │ normal │ usr     │
 │ normal │ bin     │
@@ -38,11 +40,11 @@ Inside a ZIP archive of the [SQLite source code](https://github.com/sqlite/sqlit
 ```sql
 select
   name,
-  (select count(*) from path_segments(name)) as depth
+  (select count(*) from path_parts(name)) as depth
 from zipfile('sqlite.archive.master.zip')
 where
   -- under the ext/ directory
-  path_segment_at(name, 1) == 'ext'
+  path_part_at(name, 1) == 'ext'
   -- ends in ".c"
   and path_extension(name) == '.c'
 order by 2 desc
