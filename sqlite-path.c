@@ -324,6 +324,34 @@ static void pathPartAtFunc(sqlite3_context *context, int argc,
     sqlite3_result_text(context, segment.begin, segment.size, SQLITE_TRANSIENT);
   }
 }
+
+/** path_length(path)
+ * Returns the number of segments in the given path.
+ *
+ */
+static void pathLengthFunc(sqlite3_context *context, int argc,
+                           sqlite3_value **argv) {
+  if (sqlite3_value_type(argv[0]) == SQLITE_NULL) {
+    sqlite3_result_null(context);
+    return;
+  }
+  const char *path = (const char *)sqlite3_value_text(argv[0]);
+  int c = 0;
+  
+  struct cwk_segment segment;
+
+  if(!cwk_path_get_first_segment(path, &segment)) {
+    sqlite3_result_int(context, c);
+    return;
+  }
+  
+  do {
+    c++;
+  } while(cwk_path_get_next_segment(&segment));
+  
+  sqlite3_result_int(context, c);
+  return;
+}
 #pragma endregion
 
 #pragma region sqlite - path table functions
@@ -628,6 +656,9 @@ __declspec(dllexport)
   rc = sqlite3_create_function(
       db, "path_at", 2, SQLITE_UTF8 | SQLITE_INNOCUOUS | SQLITE_DETERMINISTIC,
       0, pathPartAtFunc, 0, 0);
+  rc = sqlite3_create_function(
+      db, "path_length", 1, SQLITE_UTF8 | SQLITE_INNOCUOUS | SQLITE_DETERMINISTIC,
+      0, pathLengthFunc, 0, 0);
   rc = sqlite3_create_function(db, "path_absolute", 1,
                                SQLITE_UTF8 | SQLITE_INNOCUOUS |
                                    SQLITE_DETERMINISTIC,

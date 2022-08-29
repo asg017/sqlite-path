@@ -40,7 +40,7 @@ Inside a ZIP archive of the [SQLite source code](https://github.com/sqlite/sqlit
 ```sql
 select
   name,
-  (select count(*) from path_parts(name)) as depth
+  path_length(name) as depth
 from zipfile('sqlite.archive.master.zip')
 where
   -- under the ext/ directory
