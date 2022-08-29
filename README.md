@@ -97,16 +97,22 @@ See [`docs.md`](./docs.md) for a full API reference.
 
 ## Installing
 
-The [Releases page](https://github.com/asg017/sqlite-path/releases) contains pre-built binaries for Linux amd64, MacOS amd64 (no arm), and Windows.
+### Pre-compiled loadable extension from the Releases page
 
-### As a loadable extension
+The [Releases page](https://github.com/asg017/sqlite-path/releases) contains pre-built binaries for Linux, MacOS, and Windows. The pre-built binaries are built with Zig's [C cross compiler](https://ziglang.org/learn/overview/#zig-is-also-a-c-compiler) with compatibility in mind, not performance.
 
 If you want to use `sqlite-path` as a [Runtime-loadable extension](https://www.sqlite.org/loadext.html), Download the `path0.dylib` (for MacOS), `path0.so` (Linux), or `path0.dll` (Windows) file from a release and load it into your SQLite environment.
+
+The right "asset" to download from a specific release depends on your operating system and CPU architecture. For example, if you're running Windows on an x86 64-bit machine (very common for Windows machines), then download the `windows-x86_64-path0.dll` asset and rename it to `path0.dll`. A pre-M1 Mac would need `macos-x86_64-path0.dylib` downloaded as `path0.dylib`, or `macos-aarch64-path0.dylib` on a new M1/M2 Mac.
+
+If you come across problems loading a pre-compiled extension in your operating system, [file as issue](https://github.com/asg017/sqlite-path/issues/new).
 
 > **Note:**
 > The `0` in the filename (`path0.dylib`/ `path0.so`/`path0.dll`) denotes the major version of `sqlite-path`. Currently `sqlite-path` is pre v1, so expect breaking changes in future versions.
 
-For example, if you are using the [SQLite CLI](https://www.sqlite.org/cli.html), you can load the library like so:
+### Using a loadable extension
+
+If you are using the [SQLite CLI](https://www.sqlite.org/cli.html), you can load the library like so:
 
 ```sql
 .load ./path0
@@ -144,6 +150,13 @@ Or with [Datasette](https://datasette.io/):
 
 ```
 datasette data.db --load-extension ./path0
+```
+
+Or with [sqlite-utils](https://github.com/simonw/sqlite-utils):
+
+```bash
+sqlite-utils --load-extension ./path0 memory 'select path_version()'
+# [{"path_version()": "v0.2.0-beta.1"}]
 ```
 
 ## See also
