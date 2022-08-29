@@ -49,4 +49,5 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: path0-cross
-      - run: python3 tests/test-loadable.py dist/cross/x86_64-macos/path0.dylib
+      - run: ls -lahR
+      - run: python3 tests/test-loadable.py path0-cross/x86_64-macos/path0.dylib
