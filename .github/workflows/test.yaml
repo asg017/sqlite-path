@@ -38,10 +38,19 @@ jobs:
         with:
           name: path0-cross
           path: dist/cross
-  test-dist-macos:
-    name: Testing distribution macos
-    runs-on: macos-latest
+  test-dist:
     needs: [build-cross]
+    name: Testing distribution
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            EXT_PATH: path0-cross/x86_64-linux/path0.so
+          - os: windows-2022
+            EXT_PATH: path0-cross/x86_64-windows/path0.dll
+          - os: macos-latest
+            EXT_PATH: path0-cross/x86_64-macos/path0.dylib
     steps:
       - uses: actions/checkout@v3
         with:
@@ -50,7 +59,6 @@ jobs:
         with:
           name: path0-cross
           path: path0-cross/
-      - run: ls -lahR
       - run: python3 tests/test-loadable.py
         env:
-          EXT_PATH: path0-cross/x86_64-macos/path0.dylib
+          EXT_PATH: ${{ matrix.EXT_PATH }}
