@@ -1,7 +1,14 @@
 import sqlite3
 import unittest
+import os
 
-EXT_PATH="./dist/path0"
+# by default, run the test on the generated dist/path0.[suffix]
+# extension. Alternatively, you can specficy a specific a specific
+# extension by passing it in as the EXT_PATH env var
+if os.environ.get("EXT_PATH") is not None:
+  EXT_PATH=os.environ.get("EXT_PATH")
+else:
+  EXT_PATH="./dist/path0"
 
 def connect(ext):
   db = sqlite3.connect(":memory:")
@@ -41,6 +48,7 @@ FUNCTIONS = [
   "path_extension",
   "path_intersection",
   "path_join",
+  "path_length",
   "path_name",
   "path_normalize",
   "path_part_at",
@@ -150,6 +158,16 @@ class TestPath(unittest.TestCase):
       path_join()
     with self.assertRaisesRegex(sqlite3.OperationalError, 'at least 2 paths are required for path_join'):
       path_join("a")
+  
+  def test_path_length(self):
+    path_length = lambda v: db.execute("select path_length(?)", [v]).fetchone()[0]
+    self.assertEqual(path_length(None), None)
+    self.assertEqual(path_length(""), 0)
+    self.assertEqual(path_length("a"), 1)
+    self.assertEqual(path_length("a/b"), 2)
+    # if you wanted this to be 2, you would normalize first
+    self.assertEqual(path_length("a/b/.."), 3)
+    
   
   def test_path_normalize(self):
     path_normalize = lambda arg: db.execute("select path_normalize(?)", [arg]).fetchone()[0]
