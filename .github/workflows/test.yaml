@@ -59,6 +59,7 @@ jobs:
         with:
           name: path0-cross
           path: path0-cross/
+      - run: ls -lahR
       - run: python3 tests/test-loadable.py
         env:
           EXT_PATH: ${{ matrix.EXT_PATH }}
