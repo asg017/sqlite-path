@@ -1,11 +1,11 @@
 on:
+  pull_request:
   push:
-    #tags:
-    #  - "*"
+    tags:
+      - "*"
 name: "test"
 jobs:
   test-local:
-    if: false
     name: Testing on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -38,7 +38,7 @@ jobs:
         with:
           name: path0-cross
           path: dist/cross
-  test-dist:
+  test-cross:
     needs: [build-cross]
     name: Testing distribution
     runs-on: ${{ matrix.os }}

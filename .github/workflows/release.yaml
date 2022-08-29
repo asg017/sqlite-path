@@ -1,65 +1,27 @@
 name: "release"
 on:
   release:
-    types: [published]
+    types: [published, edited]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  build-macos:
-    name: Build for MacOS
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: Build
-        env:
-          ENV: CI
-        run: |
-          mkdir -p dist/
-          make test-loadable
-      - name: Upload dist as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: path0-darwin-amd64
-          path: dist
-  build-linux:
-    name: Build for Linux
+  build-cross:
+    name: Build cross-platform loadable files with Zig
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Build
-        env:
-          ENV: CI
-        run: |
-          mkdir -p dist/
-          make test-loadable
-      - name: Upload dist as artifact
-        uses: actions/upload-artifact@v2
+      - uses: goto-bus-stop/setup-zig@v1
         with:
-          name: path0-linux-amd64
-          path: dist
-  build-windows:
-    name: Build for Windows
-    runs-on: windows-2022
-    steps:
-      - uses: actions/checkout@v3
+          version: 0.9.1
+      - run: make cross-all
+      - uses: actions/upload-artifact@v3
         with:
-          submodules: true
-      - name: Build
-        env:
-          ENV: CI
-        run: |
-          mkdir -p dist/
-          make test-loadable
-      - name: Upload dist as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: path0-windows-amd64
-          path: dist
+          name: path0-cross
+          path: dist/cross
+
   build-sqljs:
     name: Build for SQL.JS/WASM
     runs-on: ubuntu-latest
@@ -88,7 +50,7 @@ jobs:
   release:
     name: "releases"
     if: ${{ github.event_name == 'release' }}
-    needs: [build-macos, build-linux, build-windows, build-sqljs]
+    needs: [build-cross, build-sqljs]
     permissions:
       contents: write
     runs-on: ubuntu-latest
