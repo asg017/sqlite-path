@@ -25,8 +25,8 @@ module.exports = async ({ github, context }) => {
     });
   }
   await Promise.all([
-    uploadReleaseAsset("path0-sqljs.wasm", "path0-sqljs/sqljs.wasm"),
-    uploadReleaseAsset("path0-sqljs.js", "path0-sqljs/sqljs.js"),
+    uploadReleaseAsset("sqljs-path0.wasm", "path0-sqljs/sqljs.wasm"),
+    uploadReleaseAsset("sqljs-path0.js", "path0-sqljs/sqljs.js"),
     uploadReleaseAsset(
       "linux-x86_64-gnu-path0.so",
       "path0-cross/x86_64-linux-gnu/path0.so"
