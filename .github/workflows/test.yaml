@@ -46,7 +46,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            EXT_PATH: path0-cross/x86_64-linux/path0.so
+            EXT_PATH: path0-cross/x86_64-linux-gnu/path0.so
           - os: windows-2022
             EXT_PATH: path0-cross/x86_64-windows/path0.dll
           - os: macos-latest
