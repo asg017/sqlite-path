@@ -1,10 +1,10 @@
 on:
   push:
-    tags:
-      - "*"
+    #tags:
+    #  - "*"
 name: "test"
 jobs:
-  build:
+  test-local:
     name: Testing on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -22,3 +22,25 @@ jobs:
           mkdir -p dist/
           make loadable
           make test-loadable
+  build-cross:
+    name: Build cross-platform loadable files with Zig
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: goto-bus-stop/setup-zig@v1
+        with:
+          version: 0.9.1
+      - run: make cross-all
+      - uses: actions/upload-artifact@v3
+        with:
+          name: path0-cross
+          path: dist/cross
+  test-dist-macos:
+    name: Testing distribution macos
+    runs-on: macos-latest
+    needs: [build-cross]
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: path0-cross
+      - run: python3 tests/test-loadable.py dist/cross/x86_64-macos/path0.dylib

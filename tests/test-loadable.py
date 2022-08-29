@@ -1,7 +1,14 @@
 import sqlite3
 import unittest
+import sys
 
-EXT_PATH="./dist/path0"
+# by default, run the test on the generated dist/path0.[suffix]
+# extension. Alternatively, you can specficy a specific a specific
+# extension by passing it in as the 1st parameter on the command line
+if len(sys.argv) > 1:
+  EXT_PATH=sys.argv[1]
+else:
+  EXT_PATH="./dist/path0"
 
 def connect(ext):
   db = sqlite3.connect(":memory:")

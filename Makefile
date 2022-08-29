@@ -46,6 +46,7 @@ $(prefix):
 	mkdir -p $(prefix)
 
 clean:
+	rm -rf dist/cross/
 	rm dist/*
 
 FORMAT_FILES=sqlite-path.h sqlite-path.c core_init.c
@@ -62,6 +63,30 @@ $(TARGET_LOADABLE): sqlite-path.c
 	$(DEFINE_SQLITE_PATH) \
 	$< -o $@ cwalk/src/cwalk.c
 
+cross: sqlite-path.c
+	mkdir -p dist/cross/$(CROSS_TARGET)
+	zig cc -Isqlite -Icwalk/include \
+	-fPIC -shared \
+	$(DEFINE_SQLITE_PATH) \
+	$< cwalk/src/cwalk.c \
+	-o dist/cross/$(CROSS_TARGET)/path0.$(CROSS_SUFFIX) \
+	-target $(CROSS_TARGET)
+
+cross-all:
+	make cross CROSS_TARGET=x86_64-windows CROSS_SUFFIX=dll
+	make cross CROSS_TARGET=i386-windows CROSS_SUFFIX=dll
+	
+	make cross CROSS_TARGET=x86_64-macos CROSS_SUFFIX=dylib
+	make cross CROSS_TARGET=aarch64-macos CROSS_SUFFIX=dylib
+	
+	make cross CROSS_TARGET=x86_64-linux-gnu CROSS_SUFFIX=so
+	make cross CROSS_TARGET=i386-linux CROSS_SUFFIX=so
+	make cross CROSS_TARGET=x86_64-linux CROSS_SUFFIX=so
+	make cross CROSS_TARGET=aarch64-linux CROSS_SUFFIX=so
+
+# segfaults :/
+#make cross CROSS_TARGET=arm-linux-gnu CROSS_SUFFIX=so
+	
 $(TARGET_SQLITE3): $(prefix) $(TARGET_SQLITE3_EXTRA_C) sqlite/shell.c sqlite-path.c
 	gcc \
 	$(DEFINE_SQLITE_PATH) \
