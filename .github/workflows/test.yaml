@@ -51,4 +51,6 @@ jobs:
           name: path0-cross
           path: path0-cross/
       - run: ls -lahR
-      - run: python3 tests/test-loadable.py path0-cross/x86_64-macos/path0.dylib
+      - run: python3 tests/test-loadable.py
+        env:
+          EXT_PATH: path0-cross/x86_64-macos/path0.dylib

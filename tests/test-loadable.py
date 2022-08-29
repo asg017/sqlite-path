@@ -1,12 +1,12 @@
 import sqlite3
 import unittest
-import sys
+import os
 
 # by default, run the test on the generated dist/path0.[suffix]
 # extension. Alternatively, you can specficy a specific a specific
-# extension by passing it in as the 1st parameter on the command line
-if len(sys.argv) > 1:
-  EXT_PATH=sys.argv[1]
+# extension by passing it in as the EXT_PATH env var
+if os.environ.get("EXT_PATH") is not None:
+  EXT_PATH=os.environ.get("EXT_PATH")
 else:
   EXT_PATH="./dist/path0"
 
