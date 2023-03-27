@@ -128,7 +128,7 @@ test-format: SHELL:=/bin/bash
 test-format:
 	diff -u <(cat $(FORMAT_FILES)) <(clang-format $(FORMAT_FILES))
 
-test-loadable: $(TARGET_LOADABLE)
+test-loadable:
 	$(PYTHON) tests/test-loadable.py
 
 test-python:
