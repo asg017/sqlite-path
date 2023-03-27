@@ -26,24 +26,35 @@ ifdef CONFIG_WINDOWS
 LOADABLE_EXTENSION=dll
 endif
 
+ifdef python
+PYTHON=$(python)
+else
+PYTHON=python3
+endif
+
 DEFINE_SQLITE_PATH_DATE=-DSQLITE_PATH_DATE="\"$(DATE)\""
-DEFINE_SQLITE_PATH_VERSION=-DSQLITE_PATH_VERSION="\"$(VERSION)\""
+DEFINE_SQLITE_PATH_VERSION=-DSQLITE_PATH_VERSION="\"v$(VERSION)\""
 DEFINE_SQLITE_PATH_SOURCE=-DSQLITE_PATH_SOURCE="\"$(COMMIT)\""
 DEFINE_SQLITE_PATH_CWALK_VERSION=-DSQLITE_PATH_CWALK_VERSION="\"$(CWALK_VERSION)\""
 DEFINE_SQLITE_PATH=$(DEFINE_SQLITE_PATH_DATE) $(DEFINE_SQLITE_PATH_VERSION) $(DEFINE_SQLITE_PATH_SOURCE) $(DEFINE_SQLITE_PATH_CWALK_VERSION)
 
 prefix=dist
 
-TARGET_LOADABLE=dist/path0.$(LOADABLE_EXTENSION)
+TARGET_LOADABLE=$(prefix)/path0.$(LOADABLE_EXTENSION)
+TARGET_WHEELS=$(prefix)/wheels
 TARGET_SQLITE3_EXTRA_C=$(prefix)/sqlite3-extra.c
 TARGET_SQLITE3=$(prefix)/sqlite3
 TARGET_SQLJS_JS=$(prefix)/sqljs.js
 TARGET_SQLJS_WASM=$(prefix)/sqljs.wasm
 TARGET_SQLJS=$(TARGET_SQLJS_JS) $(TARGET_SQLJS_WASM)
 
+INTERMEDIATE_PYPACKAGE_EXTENSION=python/sqlite_path/sqlite_path/path0.$(LOADABLE_EXTENSION)
 
 $(prefix):
 	mkdir -p $(prefix)
+
+$(TARGET_WHEELS): $(prefix)
+	mkdir -p $(TARGET_WHEELS)
 
 clean:
 	rm dist/*
@@ -62,6 +73,37 @@ $(TARGET_LOADABLE): sqlite-path.c
 	$(DEFINE_SQLITE_PATH) \
 	$< -o $@ cwalk/src/cwalk.c
 
+python: $(TARGET_WHEELS) $(TARGET_LOADABLE) $(TARGET_WHEELS) scripts/rename-wheels.py $(shell find python/sqlite_path -type f -name '*.py')
+	cp $(TARGET_LOADABLE) $(INTERMEDIATE_PYPACKAGE_EXTENSION)
+	rm $(TARGET_WHEELS)/sqlite_path* || true
+	pip3 wheel python/sqlite_path/ -w $(TARGET_WHEELS)
+	python3 scripts/rename-wheels.py $(TARGET_WHEELS) $(RENAME_WHEELS_ARGS)
+	echo "✅ generated python wheel"
+
+python-versions: python/version.py.tmpl
+	VERSION=$(VERSION) envsubst < python/version.py.tmpl > python/sqlite_path/sqlite_path/version.py
+	echo "✅ generated python/sqlite_path/sqlite_path/version.py"
+
+	VERSION=$(VERSION) envsubst < python/version.py.tmpl > python/datasette_sqlite_path/datasette_sqlite_path/version.py
+	echo "✅ generated python/datasette_sqlite_path/datasette_sqlite_path/version.py"
+
+
+datasette: $(TARGET_WHEELS) $(shell find python/datasette_sqlite_path -type f -name '*.py')
+	rm $(TARGET_WHEELS)/datasette* || true
+	pip3 wheel python/datasette_sqlite_path/ --no-deps -w $(TARGET_WHEELS)
+
+npm: VERSION npm/platform-package.README.md.tmpl npm/platform-package.package.json.tmpl npm/sqlite-path/package.json.tmpl scripts/npm_generate_platform_packages.sh
+	scripts/npm_generate_platform_packages.sh
+
+deno: VERSION deno/deno.json.tmpl
+	scripts/deno_generate_package.sh
+
+version:
+	make python-versions
+	make python
+	make npm
+	make deno
+
 $(TARGET_SQLITE3): $(prefix) $(TARGET_SQLITE3_EXTRA_C) sqlite/shell.c sqlite-path.c
 	gcc \
 	$(DEFINE_SQLITE_PATH) \
@@ -77,6 +119,9 @@ $(TARGET_SQLITE3_EXTRA_C): sqlite/sqlite3.c core_init.c
 test: 
 	make test-format
 	make test-loadable
+	make test-python
+	make test-npm
+	make test-deno
 	make test-sqlite3
 
 test-format: SHELL:=/bin/bash
@@ -84,7 +129,16 @@ test-format:
 	diff -u <(cat $(FORMAT_FILES)) <(clang-format $(FORMAT_FILES))
 
 test-loadable: $(TARGET_LOADABLE)
-	python3 tests/test-loadable.py
+	$(PYTHON) tests/test-loadable.py
+
+test-python:
+	$(PYTHON) tests/test-python.py
+
+test-npm:
+	node npm/sqlite-path/test.js
+
+test-deno:
+	deno task --config deno/deno.json test
 
 test-loadable-watch: $(TARGET_LOADABLE)
 	watchexec -w sqlite-path.c -w $(TARGET_LOADABLE) -w tests/test-loadable.py --clear -- make test-loadable
@@ -99,6 +153,7 @@ test-sqljs: $(TARGET_SQLJS)
 	python3 -m http.server & open http://localhost:8000/tests/test-sqljs.html
 
 .PHONY: all clean format \
+	version python python-versions datasette npm deno \
 	test test-watch test-format \
 	loadable test-loadable test-loadable-watch
 

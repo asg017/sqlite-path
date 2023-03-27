@@ -1,0 +1,8 @@
+{
+  "name": "sqlite-path",
+  "version": "0.1.0",
+  "github": "https://github.com/asg017/sqlite-path",
+  "tasks": {
+    "test": "deno test --unstable -A test.ts"
+  }
+}

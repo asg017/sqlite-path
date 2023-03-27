@@ -2,3 +2,6 @@
 a.out
 dist/
 bench/
+*.dylib
+*.so
+*.dll
