@@ -65,7 +65,7 @@ class TestPath(unittest.TestCase):
     
   def test_path_version(self):
     with open("./VERSION") as f:
-      version = f.read()
+      version = "v" + f.read()
     
     self.assertEqual(db.execute("select path_version()").fetchone()[0], version)
 
