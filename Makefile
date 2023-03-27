@@ -67,7 +67,7 @@ loadable: $(TARGET_LOADABLE) $(TARGET_LOADABLE_NOFS)
 sqlite3: $(TARGET_SQLITE3)
 sqljs: $(TARGET_SQLJS)
 
-$(TARGET_LOADABLE): $(prefix) sqlite-path.c
+$(TARGET_LOADABLE): sqlite-path.c $(prefix) 
 	gcc -Isqlite -Icwalk/include \
 	$(LOADABLE_CFLAGS) \
 	$(DEFINE_SQLITE_PATH) \
