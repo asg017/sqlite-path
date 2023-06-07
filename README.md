@@ -97,6 +97,21 @@ See [`docs.md`](./docs.md) for a full API reference.
 
 ## Installing
 
+| Language       | Install                                                    |                                                                                                                                                                                           |
+| -------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Python         | `pip install sqlite-path`                                   | [![PyPI](https://img.shields.io/pypi/v/sqlite-path.svg?color=blue&logo=python&logoColor=white)](https://pypi.org/project/sqlite-path/)                                                      |
+| Datasette      | `datasette install datasette-sqlite-path`                   | [![Datasette](https://img.shields.io/pypi/v/datasette-sqlite-path.svg?color=B6B6D9&label=Datasette+plugin&logoColor=white&logo=python)](https://datasette.io/plugins/datasette-sqlite-path) |
+| Node.js        | `npm install sqlite-path`                                   | [![npm](https://img.shields.io/npm/v/sqlite-path.svg?color=green&logo=nodedotjs&logoColor=white)](https://www.npmjs.com/package/sqlite-path)                                                |
+| Deno           | [`deno.land/x/sqlite_path`](https://deno.land/x/sqlite_path) | [![deno.land/x release](https://img.shields.io/github/v/release/asg017/sqlite-path?color=fef8d2&include_prereleases&label=deno.land%2Fx&logo=deno)](https://deno.land/x/sqlite_path)        |
+| Ruby           | `gem install sqlite-path`                                   | ![Gem](https://img.shields.io/gem/v/sqlite-path?color=red&logo=rubygems&logoColor=white)                                                                                                   |
+| Github Release |                                                            | ![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/asg017/sqlite-path?color=lightgrey&include_prereleases&label=Github+release&logo=github)                     |
+
+<!--
+| Elixir         | [`hex.pm/packages/sqlite_path`](https://hex.pm/packages/sqlite_path) | [![Hex.pm](https://img.shields.io/hexpm/v/sqlite_path?color=purple&logo=elixir)](https://hex.pm/packages/sqlite_path)                                                                       |
+| Go             | `go get -u github.com/asg017/sqlite-path/bindings/go`               | [![Go Reference](https://pkg.go.dev/badge/github.com/asg017/sqlite-path/bindings/go.svg)](https://pkg.go.dev/github.com/asg017/sqlite-path/bindings/go)                                     |
+| Rust           | `cargo add sqlite-path`                                             | [![Crates.io](https://img.shields.io/crates/v/sqlite-path?logo=rust)](https://crates.io/crates/sqlite-path)                                                                                 |
+-->
+
 The [Releases page](https://github.com/asg017/sqlite-path/releases) contains pre-built binaries for Linux amd64, MacOS amd64 (no arm), and Windows.
 
 ### As a loadable extension
