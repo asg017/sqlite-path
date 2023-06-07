@@ -198,19 +198,19 @@ jobs:
       - run: |
           rm bindings/ruby/lib/*.{dylib,so,dll} || true
           cp sqlite-path-macos/*.dylib bindings/ruby/lib
-          gem -C bindings/ruby build -o x86_64-darwin.gem sqlite_vss.gemspec
+          gem -C bindings/ruby build -o x86_64-darwin.gem sqlite_path.gemspec
         env:
           PLATFORM: x86_64-darwin
       - run: |
           rm bindings/ruby/lib/*.{dylib,so,dll} || true
           cp sqlite-path-linux_x86/*.so bindings/ruby/lib
-          gem -C bindings/ruby build -o x86_64-linux.gem sqlite_vss.gemspec
+          gem -C bindings/ruby build -o x86_64-linux.gem sqlite_path.gemspec
         env:
           PLATFORM: x86_64-linux
       - run: |
           rm bindings/ruby/lib/*.{dylib,so,dll} || true
           cp sqlite-path-windows/*.dll bindings/ruby/lib
-          gem -C bindings/ruby build -o ${{ env.PLATFORM }}.gem sqlite_vss.gemspec
+          gem -C bindings/ruby build -o ${{ env.PLATFORM }}.gem sqlite_path.gemspec
         env:
           PLATFORM: x64-mingw32
       - run: |
