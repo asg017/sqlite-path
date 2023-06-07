@@ -158,7 +158,10 @@ test-sqlite3-watch: $(TARAGET_SQLITE3)
 test-sqljs: $(TARGET_SQLJS)
 	python3 -m http.server & open http://localhost:8000/tests/test-sqljs.html
 
-.PHONY: all clean format \
+publish-release:
+	./scripts/publish_release.sh
+
+.PHONY: all clean format publish-release \
 	version python python-versions datasette npm deno ruby \
 	test test-watch test-format \
 	loadable test-loadable test-loadable-watch
