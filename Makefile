@@ -67,7 +67,7 @@ loadable: $(TARGET_LOADABLE) $(TARGET_LOADABLE_NOFS)
 sqlite3: $(TARGET_SQLITE3)
 sqljs: $(TARGET_SQLJS)
 
-$(TARGET_LOADABLE): sqlite-path.c $(prefix) 
+$(TARGET_LOADABLE): sqlite-path.c $(prefix)
 	gcc -Isqlite -Icwalk/include \
 	$(LOADABLE_CFLAGS) \
 	$(DEFINE_SQLITE_PATH) \
@@ -98,11 +98,17 @@ npm: VERSION npm/platform-package.README.md.tmpl npm/platform-package.package.js
 deno: VERSION deno/deno.json.tmpl
 	scripts/deno_generate_package.sh
 
+bindings/ruby/lib/version.rb: bindings/ruby/lib/version.rb.tmpl VERSION
+	VERSION=$(VERSION) envsubst < $< > $@
+
+ruby: bindings/ruby/lib/version.rb
+
 version:
 	make python-versions
 	make python
 	make npm
 	make deno
+	make ruby
 
 $(TARGET_SQLITE3): $(prefix) $(TARGET_SQLITE3_EXTRA_C) sqlite/shell.c sqlite-path.c
 	gcc \
@@ -116,7 +122,7 @@ $(TARGET_SQLITE3): $(prefix) $(TARGET_SQLITE3_EXTRA_C) sqlite/shell.c sqlite-pat
 $(TARGET_SQLITE3_EXTRA_C): sqlite/sqlite3.c core_init.c
 	cat sqlite/sqlite3.c core_init.c > $@
 
-test: 
+test:
 	make test-format
 	make test-loadable
 	make test-python
@@ -153,7 +159,7 @@ test-sqljs: $(TARGET_SQLJS)
 	python3 -m http.server & open http://localhost:8000/tests/test-sqljs.html
 
 .PHONY: all clean format \
-	version python python-versions datasette npm deno \
+	version python python-versions datasette npm deno ruby \
 	test test-watch test-format \
 	loadable test-loadable test-loadable-watch
 
