@@ -3,13 +3,13 @@
 # `x/sqlite_path` Deno Module
 
 [![Tags](https://img.shields.io/github/release/asg017/sqlite-path)](https://github.com/asg017/sqlite-path/releases)
-[![Doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/sqlite-path@0.2.0-alpha.4/mod.ts)
+[![Doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/sqlite-path@0.2.0-alpha.5/mod.ts)
 
 The [`sqlite-path`](https://github.com/asg017/sqlite-path) SQLite extension is available to Deno developers with the [`x/sqlite_path`](https://deno.land/x/sqlite-path) Deno module. It works with [`x/sqlite3`](https://deno.land/x/sqlite3), the fastest and native Deno SQLite3 module.
 
 ```js
 import { Database } from "https://deno.land/x/sqlite3@0.8.0/mod.ts";
-import * as sqlite_path from "https://deno.land/x/sqlite_path@v0.2.0-alpha.4/mod.ts";
+import * as sqlite_path from "https://deno.land/x/sqlite_path@v0.2.0-alpha.5/mod.ts";
 
 const db = new Database(":memory:");
 
