@@ -116,9 +116,9 @@ jobs:
           name: sqlite-path
           github-token: ${{ secrets.GITHUB_TOKEN }}
           platforms: |
-            linux-x86_64:     sqlite-path-linux_x86
-            macos-x86_64:     sqlite-path-macos
-            windows-x86_64:   sqlite-path-windows
+            linux-x86_64:     sqlite-path-linux_x86/*
+            macos-x86_64:     sqlite-path-macos/*
+            windows-x86_64:   sqlite-path-windows/*
   upload-deno:
     name: Upload Deno release assets
     needs:
