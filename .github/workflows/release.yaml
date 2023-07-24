@@ -96,6 +96,17 @@ jobs:
         with:
           name: sqlite-path-windows-wheels
           path: dist/wheels/*.whl
+  build-datasette-sqlite-utils:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - run: pip install wheel build
+      - run: make datasette sqlite-utils
+      - uses: actions/upload-artifact@v3
+        with:
+          name: sqlite-path-datasette-sqlite-utils-wheels
+          path: dist/wheels/*.whl
   upload-extensions:
     name: Upload release assets
     needs:
@@ -182,7 +193,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   upload-gem:
-    needs: [
+    needs:
+      [
         build-macos-extension,
         build-linux_x86-extension,
         build-windows-extension,
@@ -221,7 +233,13 @@ jobs:
         env:
           GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
   upload_pypi:
-    needs: [build-linux_x86-python, build-macos-python, build-windows-python]
+    needs:
+      [
+        build-linux_x86-python,
+        build-macos-python,
+        build-windows-python,
+        build-datasette-sqlite-utils,
+      ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3
@@ -235,6 +253,10 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: sqlite-path-macos-wheels
+          path: dist
+      - uses: actions/download-artifact@v3
+        with:
+          name: sqlite-path-datasette-sqlite-utils-wheels
           path: dist
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:

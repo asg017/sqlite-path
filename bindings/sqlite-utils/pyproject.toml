@@ -1,0 +1,21 @@
+[project]
+name = "sqlite-utils-sqlite-path"
+version = "0.2.0-alpha.5"
+description = "TODO"
+readme = "README.md"
+authors = [{name = "Alex Garcia"}]
+license = {text = "Apache-2.0"}
+classifiers = []
+
+dependencies = [
+    "sqlite-utils",
+    "sqlite-path"
+]
+
+[project.urls]
+Homepage = "https://github.com/asg017/sqlite-path"
+Changelog = "https://github.com/asg017/sqlite-path/releases"
+Issues = "https://github.com/asg017/sqlite-path/issues"
+
+[project.entry-points.sqlite_utils]
+sqlite_path = "sqlite_utils_sqlite_path"
