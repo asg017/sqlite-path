@@ -32,6 +32,12 @@ else
 PYTHON=python3
 endif
 
+ifdef IS_MACOS_ARM
+RENAME_WHEELS_ARGS=--is-macos-arm
+else
+RENAME_WHEELS_ARGS=
+endif
+
 DEFINE_SQLITE_PATH_DATE=-DSQLITE_PATH_DATE="\"$(DATE)\""
 DEFINE_SQLITE_PATH_VERSION=-DSQLITE_PATH_VERSION="\"v$(VERSION)\""
 DEFINE_SQLITE_PATH_SOURCE=-DSQLITE_PATH_SOURCE="\"$(COMMIT)\""
@@ -69,7 +75,7 @@ sqljs: $(TARGET_SQLJS)
 
 $(TARGET_LOADABLE): sqlite-path.c $(prefix)
 	gcc -Isqlite -Icwalk/include \
-	$(LOADABLE_CFLAGS) \
+	$(LOADABLE_CFLAGS) $(CFLAGS) \
 	$(DEFINE_SQLITE_PATH) \
 	$< -o $@ cwalk/src/cwalk.c
 

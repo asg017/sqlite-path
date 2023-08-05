@@ -35,7 +35,6 @@ jobs:
         with:
           name: sqlite-path-linux_x86-wheels
           path: dist/wheels/*.whl
-
   build-macos-extension:
     runs-on: macos-latest
     steps:
@@ -64,6 +63,34 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: sqlite-path-macos-wheels
+          path: dist/wheels/*.whl
+  build-macos-aarch64-extension:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: make loadable CFLAGS="-target arm64-apple-macos11"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: sqlite-path-macos-aarch64
+          path: dist/path0.dylib
+  build-macos-aarch64-python:
+    runs-on: macos-latest
+    needs: [build-macos-aarch64-extension]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download workflow artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: sqlite-path-macos
+          path: dist/
+      - uses: actions/setup-python@v3
+      - run: pip install wheel
+      - run: make python IS_MACOS_ARM=1
+      - uses: actions/upload-artifact@v3
+        with:
+          name: sqlite-path-macos-aarch64-wheels
           path: dist/wheels/*.whl
 
   build-windows-extension:
@@ -112,6 +139,7 @@ jobs:
     needs:
       [
         build-macos-extension,
+        build-macos-aarch64-extension,
         build-linux_x86-extension,
         build-windows-extension,
       ]
@@ -129,12 +157,14 @@ jobs:
           platforms: |
             linux-x86_64:     sqlite-path-linux_x86/*
             macos-x86_64:     sqlite-path-macos/*
+            macos-aarch64:     sqlite-path-macos/*
             windows-x86_64:   sqlite-path-windows/*
   upload-deno:
     name: Upload Deno release assets
     needs:
       [
         build-macos-extension,
+        build-macos-aarch64-extension,
         build-linux_x86-extension,
         build-windows-extension,
       ]
@@ -155,6 +185,7 @@ jobs:
     needs:
       [
         build-macos-extension,
+        build-macos-aarch64-extension,
         build-linux_x86-extension,
         build-windows-extension,
       ]
@@ -166,6 +197,7 @@ jobs:
       - run: |
           cp sqlite-path-linux_x86/path0.so npm/sqlite-path-linux-x64/lib/path0.so
           cp sqlite-path-macos/path0.dylib npm/sqlite-path-darwin-x64/lib/path0.dylib
+          cp sqlite-path-macos-aarch64/path0.dylib npm/sqlite-path-darwin-arm64/lib/path0.dylib
           cp sqlite-path-windows/path0.dll npm/sqlite-path-windows-x64/lib/path0.dll
       - name: Install node
         uses: actions/setup-node@v3
@@ -179,6 +211,11 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish NPM sqlite-path-darwin-x64
         working-directory: npm/sqlite-path-darwin-x64
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish NPM sqlite-path-darwin-arm64
+        working-directory: npm/sqlite-path-darwin-arm64
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -196,6 +233,7 @@ jobs:
     needs:
       [
         build-macos-extension,
+        build-macos-aarch64-extension,
         build-linux_x86-extension,
         build-windows-extension,
       ]
@@ -216,6 +254,12 @@ jobs:
           PLATFORM: x86_64-darwin
       - run: |
           rm bindings/ruby/lib/*.{dylib,so,dll} || true
+          cp sqlite-path-macos-aarch64/*.dylib bindings/ruby/lib
+          gem -C bindings/ruby build -o arm64-darwin.gem sqlite_path.gemspec
+        env:
+          PLATFORM: arm64-darwin
+      - run: |
+          rm bindings/ruby/lib/*.{dylib,so,dll} || true
           cp sqlite-path-linux_x86/*.so bindings/ruby/lib
           gem -C bindings/ruby build -o x86_64-linux.gem sqlite_path.gemspec
         env:
@@ -229,6 +273,7 @@ jobs:
       - run: |
           gem push bindings/ruby/x86_64-linux.gem
           gem push bindings/ruby/x86_64-darwin.gem
+          gem push bindings/ruby/arm64-darwin.gem
           gem push bindings/ruby/x64-mingw32.gem
         env:
           GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
@@ -237,6 +282,7 @@ jobs:
       [
         build-linux_x86-python,
         build-macos-python,
+        build-macos-aarch64-python,
         build-windows-python,
         build-datasette-sqlite-utils,
       ]
@@ -253,6 +299,10 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: sqlite-path-macos-wheels
+          path: dist
+      - uses: actions/download-artifact@v3
+        with:
+          name: sqlite-path-macos-aarch64-wheels
           path: dist
       - uses: actions/download-artifact@v3
         with:

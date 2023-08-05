@@ -6,6 +6,10 @@ const compiled_extensions = [
     name: "deno-darwin-x86_64.path0.dylib",
   },
   {
+    path: "sqlite-path-macos-aarch64/path0.dylib",
+    name: "deno-darwin-aarch64.path0.dylib",
+  },
+  {
     path: "sqlite-path-linux_x86/path0.so",
     name: "deno-linux-x86_64.path0.so",
   },
